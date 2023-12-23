@@ -40,16 +40,15 @@ def resolveChannel(image_path, binary_path="bin"):
 def has_transparency(image_path):
     MagickOutput=resolveChannel(image_path=image_path)
 
-    if "srgba" in MagickOutput:
-        return True
-    elif "srgb" in MagickOutput and "srgba" not in MagickOutput:
-        return False
-    elif "rgba" in MagickOutput:
-        return True
-    elif "rgb" in MagickOutput and "rgba" not in MagickOutput:
-        return False
-    elif "p" in MagickOutput:
-        return True
+    return {
+        "srgba": True,
+        "rgba": True,
+        "srgb": False,
+        "rgb": False,
+        "p": True,
+        "l": True,
+        "graya": True
+    }[MagickOutput]
     
 def get_platform(platform: str):
     return {

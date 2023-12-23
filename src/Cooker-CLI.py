@@ -12,7 +12,6 @@ def main(args):
     time.sleep(args.nvcompress_wait_time) # Giving NVCompress time to convert the image
 
     shutil.rmtree(r"C:\Temp")
-    if args.imagetodds: remove("temp.png")
 
 parser = argparse.ArgumentParser(description="Just Dance Multi-Platform Texture Cooker implementation in Python.")
 

@@ -30,4 +30,3 @@ for texture in listdir("toCook"):
     TextureCooker.Cook(input_texture=input_texture, output_texture=output_texture, platformType=PLATFORM, IMAGETODDS=IMAGETODDS)
 
 shutil.rmtree(r"C:\Temp")
-if IMAGETODDS: remove("temp.png")
