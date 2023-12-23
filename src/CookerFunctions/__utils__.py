@@ -1,5 +1,5 @@
 import subprocess
-from os import path
+from os import path, system
 from PIL import Image
 
 def convert_to(image_path, 
@@ -16,15 +16,9 @@ def convert_to(image_path,
     else: 
         command = f"{binary_path}\\{program}.exe {compression}"
         command += f' "{image_path}" "{path.abspath(output_texture)}"'
-    subprocess.Popen(
-        command,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        shell=True,
-        text=True
-    )
+    system(command)
 
-def has_transparency(image_path, binary_path="bin"):
+def resolveChannel(image_path, binary_path="bin"):
     completed_process = subprocess.Popen(
         f'''{binary_path}\\magick.exe identify -format '%[channels]' "{image_path}"''',
         stdout=subprocess.PIPE, 
@@ -40,15 +34,21 @@ def has_transparency(image_path, binary_path="bin"):
     else:
         output = stderr_output
 
-    if "srgba" in output:
+    output = output.replace("  3.0", "").replace("'", "")
+    return output
+
+def has_transparency(image_path):
+    MagickOutput=resolveChannel(image_path=image_path)
+
+    if "srgba" in MagickOutput:
         return True
-    elif "srgb" in output and "srgba" not in output:
+    elif "srgb" in MagickOutput and "srgba" not in MagickOutput:
         return False
-    elif "rgba" in output:
+    elif "rgba" in MagickOutput:
         return True
-    elif "rgb" in output and "rgba" not in output:
+    elif "rgb" in MagickOutput and "rgba" not in MagickOutput:
         return False
-    elif "p" in output:
+    elif "p" in MagickOutput:
         return True
     
 def get_platform(platform: str):

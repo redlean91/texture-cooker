@@ -4,7 +4,7 @@
 ## Requirements
 In the **bin** folder you must have:
 
-    - ImageMagick Executable (magick.exe)
+    - ImageMagick Executable (magick.exe) version 7.0.10-24
     - NVCompress from Nvidia Texture Tools
 
 ## Platform Requirements

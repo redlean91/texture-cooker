@@ -8,12 +8,8 @@ def main(args):
             print("Magick.exe is missing! IMAGETODDS Flag not supported!\nClosing in 5 seconds.")
             time.sleep(5)
             exit()
-        makeTemp()
-        output_temp=r"C:\\Temp\\temp.dds"
-        convert_to(image_path=args.input_texture, output_texture="temp.png", program="magick")
-        convert_to(image_path=r".\temp.png", output_texture=output_temp, program="nvcompress")
-        time.sleep(args.nvcompress_wait_time) # Giving NVCompress time to convert the image
-        TextureCooker.cook(input_texture=output_temp, output_texture=args.output_texture, platformType=args.platform)
+    TextureCooker.Cook(input_texture=args.input_texture, output_texture=args.output_texture, platformType=args.platform)
+    time.sleep(args.nvcompress_wait_time) # Giving NVCompress time to convert the image
 
     shutil.rmtree(r"C:\Temp")
     if args.imagetodds: remove("temp.png")

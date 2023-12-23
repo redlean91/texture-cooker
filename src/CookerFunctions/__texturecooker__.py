@@ -1,18 +1,45 @@
+from email.mime import image
 import os
 import shutil
 from .__utils__ import *
 from .__texture__ import Texture
 
 class TextureCooker:
+    def resolveCompressionNvidia(ImageMagick_Compression):
+        return {
+            "rgb": "-bc1",
+            "srgb": "-bc1",
+            "rgba": "-bc2",
+            "srgba": "-bc3",
+            "l": "-bc3",
+            "1": "-bc1",
+            "graya": "-bc2"
+        }[ImageMagick_Compression]
+    
+    def resolveCompression(ImageMagick_Compression):
+        return {
+            "rgb": "DXT1",
+            "srgb": "DXT1",
+            "rgba": "DXT3",
+            "srgba": "DXT3",
+            "l": "DXT5",
+            "1": "DXT1",
+            "graya": "DXT3"
+        }[ImageMagick_Compression]
+
+    def __cookDDS(image_path,
+                  output_texture):
+        
+        channel = resolveChannel(image_path=image_path)
+        compression = TextureCooker.resolveCompressionNvidia(channel)
+        convert_to(image_path=image_path, output_texture=r"C:\Temp\temp.png")
+        TextureCooker.cookDDS(input_texture=r"C:\Temp\temp.png", output_texture=output_texture, compression=compression)
+
     def cookDDS(input_texture, output_texture, compression, mips=None, binaryPath="bin"):
         COOKER = r"{}\nvcompress.exe".format(binaryPath)
-        if compression == "DXT1": _type = "-bc1"
-        if compression == "DXT3": _type = "-bc2"
-        if compression == "DXT5": _type = "-bc3"
-        if compression == "RGBA32": _type = "-rgb"
         mipsArg = "" if mips else "-nomips"
 
-        os.system("{} -silent {} -nocuda {} {} {}".format(COOKER, _type, input_texture, output_texture))
+        os.system("{} {} -nocuda {} {} {}".format(COOKER, compression, mipsArg, input_texture, output_texture))
     
     def cookPC(input_texture, output_texture):
         _Texture = Texture(input_texture, output_texture, "PC")
@@ -40,8 +67,11 @@ class TextureCooker:
 
     # def cookWii(): "stil needs to do"
 
-    def cook(input_texture, output_texture, platformType):
-        makeTemp()
+    def Cook(input_texture, output_texture, platformType, IMAGETODDS=False):
+        makeTemp()        
+        if IMAGETODDS:
+            TextureCooker.__cookDDS(image_path=input_texture, output_texture=r"C:\Temp\temp.dds")
+            input_texture = r"C:\Temp\temp.dds"
 
         with open(input_texture, "rb") as ddsFile:
             if ddsFile.read(4) != b"DDS ":
