@@ -2,12 +2,12 @@ import os
 from .__utils__ import *
 from .__types__ import *
 from PIL import Image
-import numpy
+import numpy, time
 
 # This is a revival of planedec50's code, kind of like my version
 
 class Texture:
-    def __init__(self, ddsImage, cookedOut, platform="nx", binPath="bin"):
+    def __init__(self, ddsImage, cookedOut, platform="nx", binPath="bin", COOKER_WAIT_TIME=0.5):
         self.version = 9
         self.signature = 1413830656
         self.rawDataOffset = 0x2C
@@ -31,6 +31,7 @@ class Texture:
         self.platformType = platform
         self.tmpCook = None
         self.binaryPath = binPath
+        self.COOKER_WAIT_TIME = COOKER_WAIT_TIME
 
     def getTextureData(self):
         corrispondenze_bpp_mode = {
@@ -76,6 +77,7 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtx"
         os.system("{} -i {} -o {}".format(COOKER, self.ddsPath, self.tmpCook))
+        time.sleep(self.COOKER_WAIT_TIME)
         with open(self.tmpCook, "rb") as byteStream:
             self.rawdata = byteStream.read()
             self.rawDataSize = byteStream.tell()
@@ -83,14 +85,17 @@ class Texture:
 
     def cookXtx(self):
         # Checking if theres, Executable version or Python version of XTX-Extract
-        xtxPyPresence = os.path.isfile(r"{}\xtx-extract.py".format(self.binaryPath))
-        if xtxPyPresence: COOKER = r"python {}\xtx-extract.py".format(self.binaryPath)
-        if not xtxPyPresence: COOKER = r"python {}\xtx-extract.exe".format(self.binaryPath)
+        xtxPyPresence = os.path.isfile(r"{}\xtx_extract.py".format(self.binaryPath))
+        if xtxPyPresence: COOKER = r"python {}\xtx_extract.py".format(self.binaryPath)
+        if not xtxPyPresence: COOKER = r"{}\xtx_extract.exe".format(self.binaryPath)
 
         # Creating the temp folder
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.xtx"
-        os.system("{} -i {} -o {}".format(COOKER, self.ddsPath, self.tmpCook))
+        exec="{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath)
+        print(exec)
+        os.system(exec)
+        time.sleep(self.COOKER_WAIT_TIME)
         with open(self.tmpCook, "rb") as byteStream:
             self.rawdata = byteStream.read()
             self.rawDataSize = byteStream.tell()
@@ -103,6 +108,7 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtf"
         os.system("{} -o {} ".format(COOKER, self.tmpCook, self.ddsPath))
+        time.sleep(self.COOKER_WAIT_TIME)
         with open(self.tmpCook, "rb") as byteStream:
             self.rawdata = byteStream.read()
             self.rawDataSize = byteStream.tell()
@@ -137,6 +143,7 @@ class Texture:
         self.newTmpCook = r"C:\Temp\tmpCook.xpr"
 
         os.system("{} {} -o {} ".format(COOKER, self.tmpCook, self.newTmpCook))
+        time.sleep(self.COOKER_WAIT_TIME)
 
         self.tmpCook = self.newTmpCook
         del self.newTmpCook
@@ -160,13 +167,14 @@ class Texture:
             "CMYK": "D3DFMT_DXT1",
             "YCbCr": "D3DFMT_DXT1",
             "I": "D3DFMT_DXT5",
-            "F": "D3DFMT_DXT5"
+            "F": "D3DFMT_DXT5",
+            "GRAYA": "D3DFMT_DXT3"
         }[self.PILLOW_MODE]
 
     def serializeHeader(self):
         self.headerBytes = b''
-        self.headerBytes += uint32(self.signature)
         self.headerBytes += uint32(self.version)
+        self.headerBytes += uint32(self.signature)
         self.headerBytes += uint32(self.rawDataOffset)
         self.headerBytes += uint32(self.rawDataSize)
         self.headerBytes += ushort(self.width)

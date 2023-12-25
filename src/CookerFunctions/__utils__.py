@@ -1,11 +1,11 @@
 import subprocess
 from os import path, system
-from PIL import Image
 
 def convert_to(image_path, 
                output_texture, 
                binary_path="bin",  
-               program="magick"):
+               program="magick",
+               silent=True):
     
     alpha = has_transparency(image_path)
     if program == "nvcompress": compression = '-bc3' if alpha else "-bc1"
@@ -14,7 +14,8 @@ def convert_to(image_path,
     if program=="magick": 
         command = f'{binary_path}\\magick.exe convert "{image_path}" "{output_texture}"'
     else: 
-        command = f"{binary_path}\\{program}.exe {compression}"
+        if silent: command = f"{binary_path}\\{program}.exe -silent {compression}"
+        else: command = f"{binary_path}\\{program}.exe {compression}"
         command += f' "{image_path}" "{path.abspath(output_texture)}"'
     system(command)
 

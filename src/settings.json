@@ -1,5 +1,5 @@
 {
     "PLATFORM": "WIIU",
-    "NVCOMPRESS_WAIT_TIME": 0.5,
-    "IMAGETODDS_FLAG": true
+    "COOKER_WAIT_TIME": 0.5,
+    "IMAGETODDS_FLAG": false
 }

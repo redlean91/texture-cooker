@@ -1,6 +1,4 @@
-from email.mime import image
 import os
-import shutil
 from .__utils__ import *
 from .__texture__ import Texture
 
@@ -41,7 +39,7 @@ class TextureCooker:
 
         os.system("{} {} -nocuda {} {} {}".format(COOKER, compression, mipsArg, input_texture, output_texture))
     
-    def cookPC(input_texture, output_texture):
+    def cookPC(input_texture, output_texture, COOKER_WAIT_TIME):
         _Texture = Texture(input_texture, output_texture, "PC")
         _Texture.getTextureData()
         _Texture.cookDDS()
@@ -49,7 +47,7 @@ class TextureCooker:
         _Texture.writeCookedTexture()
         del _Texture
 
-    def cookNX(input_texture, output_texture):
+    def cookNX(input_texture, output_texture, COOKER_WAIT_TIME):
         _Texture = Texture(input_texture, output_texture, "NX")
         _Texture.getTextureData()
         _Texture.cookXtx()
@@ -57,7 +55,7 @@ class TextureCooker:
         _Texture.writeCookedTexture()
         del _Texture
 
-    def cookWiiu(input_texture, output_texture):
+    def cookWiiu(input_texture, output_texture, COOKER_WAIT_TIME):
         _Texture = Texture(input_texture, output_texture, "WIIU")
         _Texture.getTextureData()
         _Texture.cookGtx()
@@ -67,7 +65,7 @@ class TextureCooker:
 
     # def cookWii(): "stil needs to do"
 
-    def Cook(input_texture, output_texture, platformType, IMAGETODDS=False):
+    def Cook(input_texture, output_texture, platformType, IMAGETODDS=False, COOKER_WAIT_TIME=0.5):
         makeTemp()        
         if IMAGETODDS:
             TextureCooker.__cookDDS(image_path=input_texture, output_texture=r"C:\Temp\temp.dds")
@@ -82,13 +80,13 @@ class TextureCooker:
                 if compression == b'\0\0\0\0': compression = "RGBA32"
 
         if platformType == "PC":
-            TextureCooker.cookPC(input_texture, output_texture)
+            TextureCooker.cookPC(input_texture, output_texture, COOKER_WAIT_TIME)
         
         if platformType == "NX":
-            TextureCooker.cookNX(input_texture, output_texture)
+            TextureCooker.cookNX(input_texture, output_texture, COOKER_WAIT_TIME)
 
         if platformType == "WIIU":
-            TextureCooker.cookWiiu(input_texture, output_texture)
+            TextureCooker.cookWiiu(input_texture, output_texture, COOKER_WAIT_TIME)
 
         
 
