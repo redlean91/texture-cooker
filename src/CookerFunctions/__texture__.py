@@ -62,7 +62,6 @@ class Texture:
                 elif NUMPY_DDS[x][y][3] == 255:
                     self.nbOpaquePixels += 1
 
-
     # Platform Texture Cookers
     def cookDDS(self):
         with open(self.ddsPath, "rb") as byteStream:
@@ -92,9 +91,7 @@ class Texture:
         # Creating the temp folder
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.xtx"
-        exec="{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath)
-        print(exec)
-        os.system(exec)
+        os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
         time.sleep(self.COOKER_WAIT_TIME)
         with open(self.tmpCook, "rb") as byteStream:
             self.rawdata = byteStream.read()
@@ -102,12 +99,13 @@ class Texture:
             self.memorySize = byteStream.tell()
 
     def cookGtf(self):
+        print(self.binaryPath)
         COOKER = r"{}\dds2gtf.exe".format(self.binaryPath)
         
         # Creating the temp folder
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtf"
-        os.system("{} -o {} ".format(COOKER, self.tmpCook, self.ddsPath))
+        os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
         time.sleep(self.COOKER_WAIT_TIME)
         with open(self.tmpCook, "rb") as byteStream:
             self.rawdata = byteStream.read()

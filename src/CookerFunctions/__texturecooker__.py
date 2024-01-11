@@ -1,4 +1,5 @@
 import os
+import platform
 from .__utils__ import *
 from .__texture__ import Texture
 
@@ -40,7 +41,7 @@ class TextureCooker:
         os.system("{} {} -nocuda {} {} {}".format(COOKER, compression, mipsArg, input_texture, output_texture))
     
     def cookPC(input_texture, output_texture, COOKER_WAIT_TIME):
-        _Texture = Texture(input_texture, output_texture, "PC")
+        _Texture = Texture(input_texture, output_texture, "PC", COOKER_WAIT_TIME=COOKER_WAIT_TIME)
         _Texture.getTextureData()
         _Texture.cookDDS()
         _Texture.serializeHeader()
@@ -48,7 +49,7 @@ class TextureCooker:
         del _Texture
 
     def cookNX(input_texture, output_texture, COOKER_WAIT_TIME):
-        _Texture = Texture(input_texture, output_texture, "NX")
+        _Texture = Texture(input_texture, output_texture, "NX", COOKER_WAIT_TIME=COOKER_WAIT_TIME)
         _Texture.getTextureData()
         _Texture.cookXtx()
         _Texture.serializeHeader()
@@ -56,9 +57,17 @@ class TextureCooker:
         del _Texture
 
     def cookWiiu(input_texture, output_texture, COOKER_WAIT_TIME):
-        _Texture = Texture(input_texture, output_texture, "WIIU")
+        _Texture = Texture(input_texture, output_texture, "WIIU", COOKER_WAIT_TIME=COOKER_WAIT_TIME)
         _Texture.getTextureData()
         _Texture.cookGtx()
+        _Texture.serializeHeader()
+        _Texture.writeCookedTexture()
+        del _Texture
+
+    def cookPS3(input_texture, output_texture, COOKER_WAIT_TIME):
+        _Texture = Texture(input_texture, output_texture, "PS3", COOKER_WAIT_TIME=COOKER_WAIT_TIME)
+        _Texture.getTextureData()
+        _Texture.cookGtf()
         _Texture.serializeHeader()
         _Texture.writeCookedTexture()
         del _Texture
@@ -85,8 +94,18 @@ class TextureCooker:
         if platformType == "NX":
             TextureCooker.cookNX(input_texture, output_texture, COOKER_WAIT_TIME)
 
-        if platformType == "WIIU":
+        if platformType == "WIIU" or platformType == "CAFE":
             TextureCooker.cookWiiu(input_texture, output_texture, COOKER_WAIT_TIME)
+
+        if platformType == "XONE" or platformType == "DURANGO":
+            TextureCooker.cookPC(input_texture, output_texture, COOKER_WAIT_TIME)
+
+        if platformType == "PS4" or platformType == "ORBIS":
+            TextureCooker.cookPC(input_texture, output_texture, COOKER_WAIT_TIME)
+
+        if platformType == "PS3":
+            TextureCooker.cookPS3(input_texture, output_texture, COOKER_WAIT_TIME)
+
 
         
 
