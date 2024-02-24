@@ -152,10 +152,10 @@ class Texture:
         with open(self.tmpCook, "rb") as byteStream:
             byteStream.seek(0x2C)
             self.headerXpr = byteStream.read(0x34)
-            byteStream.seek(1964)
+            byteStream.seek(2060)
             self.rawdata = byteStream.read()
             self.rawDataSize = len(self.rawdata) + 0x23
-            self.memorySize = len(self.rawdata) + 0x233
+            self.memorySize = len(self.rawdata) + 0x23
 
     # Xbox 360
     @staticmethod
@@ -193,7 +193,7 @@ class Texture:
         self.headerBytes += ubyte(self.dummybyte)
         self.headerBytes += ubyte(self.dummybyte2)
 
-        if self.platformType == "x360":
+        if self.platformType == "X360":
             self.headerBytes += self.headerXpr
 
     def writeCookedTexture(self):
