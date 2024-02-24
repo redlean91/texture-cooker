@@ -72,6 +72,14 @@ class TextureCooker:
         _Texture.writeCookedTexture()
         del _Texture
 
+    def cookX360(input_texture, output_texture, COOKER_WAIT_TIME):
+        _Texture = Texture(input_texture, output_texture, "X360", COOKER_WAIT_TIME=COOKER_WAIT_TIME)
+        _Texture.getTextureData()
+        _Texture.cookXpr()
+        _Texture.serializeHeader()
+        _Texture.writeCookedTexture()
+        del _Texture
+
     # def cookWii(): "stil needs to do"
 
     def Cook(input_texture, output_texture, platformType, IMAGETODDS=False, COOKER_WAIT_TIME=0.5):
@@ -105,6 +113,9 @@ class TextureCooker:
 
         if platformType == "PS3":
             TextureCooker.cookPS3(input_texture, output_texture, COOKER_WAIT_TIME)
+
+        if platformType == "X360":
+            TextureCooker.cookX360(input_texture, output_texture, COOKER_WAIT_TIME)
 
 
         

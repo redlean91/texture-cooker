@@ -22,6 +22,6 @@ In the **bin** folder you must have:
 | Wii U | ✅ |
 | Wii | ❌ |
 | PS5 | ❌ |
-| Xbox 360 | ❌ |
+| Xbox 360 | ✅ |
 | Nintendo Switch | ✅ |
 

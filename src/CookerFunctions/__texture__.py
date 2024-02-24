@@ -133,14 +133,17 @@ class Texture:
         Levels = "1"
         />
         </RDF>'''.format(self.tmpCook,
-                        Texture.resolveRdfMode(),
+                        Texture.resolveRdfMode(self.PILLOW_MODE),
                         self.width,
                         self.height)
         
         self.tmpCook = r"C:\Temp\tmpCook.rdf"
         self.newTmpCook = r"C:\Temp\tmpCook.xpr"
 
-        os.system("{} {} -o {} ".format(COOKER, self.tmpCook, self.newTmpCook))
+        with open(self.tmpCook, "w") as temprdf:
+            temprdf.write(rdf)
+
+        os.system("{} {}  ".format(COOKER, self.tmpCook))
         time.sleep(self.COOKER_WAIT_TIME)
 
         self.tmpCook = self.newTmpCook
@@ -151,11 +154,12 @@ class Texture:
             self.headerXpr = byteStream.read(0x34)
             byteStream.seek(1964)
             self.rawdata = byteStream.read()
-            self.rawDataSize = len(self.rawdata)
-            self.memorySize = len(self.rawdata)
+            self.rawDataSize = len(self.rawdata) + 0x23
+            self.memorySize = len(self.rawdata) + 0x233
 
     # Xbox 360
-    def resolveRdfMode(self):
+    @staticmethod
+    def resolveRdfMode(mode):
         return {
             "1": "D3DFMT_DXT3",
             "L": "D3DFMT_DXT3",
@@ -167,7 +171,7 @@ class Texture:
             "I": "D3DFMT_DXT5",
             "F": "D3DFMT_DXT5",
             "GRAYA": "D3DFMT_DXT3"
-        }[self.PILLOW_MODE]
+        }[mode]
 
     def serializeHeader(self):
         self.headerBytes = b''
