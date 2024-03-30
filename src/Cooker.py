@@ -15,7 +15,7 @@ makedirs("toCook", exist_ok=True)
 makedirs(f"cooked\\{PLATFORM.lower()}", exist_ok=True)
 
 clear()
-print("UbiArt Multi-Platform Texture Cooker by Sen\n\nCurrent Cooker Wait Time: {}\n\nThis tool was last modified on: 24 February 2024 - 12:34\n".format(str(COOKER_WAIT_TIME)))
+print("UbiArt Multi-Platform Texture Cooker by Sen\n\nCurrent Cooker Wait Time: {}\n\nThis tool was last modified on: 30 March 2024 - 11:16\n".format(str(COOKER_WAIT_TIME)))
 
 for texture in listdir("toCook"):
     print(f"Current Texture: {texture}")
