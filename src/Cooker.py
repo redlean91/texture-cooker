@@ -5,17 +5,16 @@ import time, json, shutil
 try: settings = json.load(open("settings.json"))
 except: 
     print("INFO: Settings not found! Using default ones.")
-    settings = {"PLATFORM": "NX", "COOKER_WAIT_TIME": 0.5, "IMAGETODDS_FLAG": True}
+    settings = {"PLATFORM": "NX","IMAGETODDS_FLAG": True}
 
 PLATFORM = settings["PLATFORM"]
-COOKER_WAIT_TIME = settings["COOKER_WAIT_TIME"]
 IMAGETODDS = settings["IMAGETODDS_FLAG"]
 
 makedirs("toCook", exist_ok=True)
 makedirs(f"cooked\\{PLATFORM.lower()}", exist_ok=True)
 
 clear()
-print("UbiArt Multi-Platform Texture Cooker by Sen\n\nCurrent Cooker Wait Time: {}\n\nThis tool was last modified on: 30 March 2024 - 11:16\n".format(str(COOKER_WAIT_TIME)))
+print("UbiArt Multi-Platform Texture Cooker by Sen\n\nThis tool was last modified on: 2 April 2024 - 12:16\n")
 
 for texture in listdir("toCook"):
     print(f"Current Texture: {texture}")
@@ -27,6 +26,6 @@ for texture in listdir("toCook"):
             exit()
     if has_transparency(input_texture): output_texture = f"cooked\\{PLATFORM.lower()}\\" + texture.split(".")[0]+".png.ckd"
     else: output_texture = f"cooked\\{PLATFORM.lower()}\\" + texture.split(".")[0]+".tga.ckd"
-    TextureCooker.Cook(input_texture=input_texture, output_texture=output_texture, platformType=PLATFORM, IMAGETODDS=IMAGETODDS, COOKER_WAIT_TIME=COOKER_WAIT_TIME)
+    TextureCooker.Cook(input_texture=input_texture, output_texture=output_texture, platformType=PLATFORM, IMAGETODDS=IMAGETODDS)
 
 shutil.rmtree(r"C:\Temp")
