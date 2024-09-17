@@ -27,13 +27,14 @@ class Texture:
         self.dummybyte2 = 0
         self.rawdata = None
         self.ddsPath = ddsImage
+        self.bIO_header = b''
         self.cookedTexture = open(cookedOut, "wb")
         self.platformType = platform
         self.tmpCook = None
         self.binaryPath = binPath
 
     def getTextureData(self):
-        corrispondenze_bpp_mode = {
+        ENUM_bpp_mode = {
             "1": 1,
             "L": 8,
             "P": 8,
@@ -49,7 +50,7 @@ class Texture:
         self.width = PILLOW_DDS.width
         self.height = PILLOW_DDS.height
         self.PILLOW_MODE = PILLOW_DDS.mode
-        self.bpp = corrispondenze_bpp_mode[self.PILLOW_MODE]
+        self.bpp = ENUM_bpp_mode[self.PILLOW_MODE]
 
         NUMPY_DDS = numpy.array(PILLOW_DDS)
         for x in range(len(NUMPY_DDS)):
@@ -62,8 +63,8 @@ class Texture:
                     self.nbOpaquePixels += 1
 
     # Platform Texture Cookers
-    def cookDDS(self):
-        with open(self.ddsPath, "rb") as byteStream:
+    def r_getTextureData(self, texturepath=None):
+        with open(texturepath, "rb") as byteStream:
             self.rawdata = byteStream.read()
             self.rawDataSize = byteStream.tell()
             self.memorySize = byteStream.tell()
@@ -75,10 +76,7 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtx"
         os.system("{} -i {} -o {}".format(COOKER, self.ddsPath, self.tmpCook))
-        with open(self.tmpCook, "rb") as byteStream:
-            self.rawdata = byteStream.read()
-            self.rawDataSize = byteStream.tell()
-            self.memorySize = byteStream.tell()
+        r_getRawTextureData(texturepath=self.tmpcook)
 
     def cookXtx(self):
         # Checking if theres, Executable version or Python version of XTX-Extract
@@ -90,10 +88,7 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.xtx"
         os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
-        with open(self.tmpCook, "rb") as byteStream:
-            self.rawdata = byteStream.read()
-            self.rawDataSize = byteStream.tell()
-            self.memorySize = byteStream.tell()
+        r_getRawTextureData(texturepath=self.tmpcook)
 
     def cookGtf(self):
         print(self.binaryPath)
@@ -103,12 +98,24 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtf"
         os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
-        with open(self.tmpCook, "rb") as byteStream:
-            self.rawdata = byteStream.read()
-            self.rawDataSize = byteStream.tell()
-            self.memorySize = byteStream.tell()
+        r_getRawTextureData(texturepath=self.tmpcook)
 
     def cookXpr(self):
+        @staticmethod
+        def r_rdfFormat(mode="RGBA"):
+            return {
+                "1": "D3DFMT_DXT3",
+                "L": "D3DFMT_DXT3",
+                "P": "D3DFMT_DXT3",
+                "RGB": "D3DFMT_DXT1",
+                "RGBA": "D3DFMT_DXT3",
+                "CMYK": "D3DFMT_DXT1",
+                "YCbCr": "D3DFMT_DXT1",
+                "I": "D3DFMT_DXT5",
+                "F": "D3DFMT_DXT5",
+                "GRAYA": "D3DFMT_DXT3"
+            }[mode]
+        
         COOKER = r"{}\Bundler.exe".format(self.binaryPath)
 
         # Creating the temp folder
@@ -122,16 +129,16 @@ class Texture:
         rdf = '''<RDF Version="XPR2">
         <Texture
         Name = "StrName"
-        Source="{}"
-        Format = "{}"
-        Width = "{}"
-        Height = "{}"
+        Source="{Source}"
+        Format = "{Format}"
+        Width = "{Width}"
+        Height = "{Height}"
         Levels = "1"
         />
-        </RDF>'''.format(self.tmpCook,
-                        Texture.resolveRdfMode(self.PILLOW_MODE),
-                        self.width,
-                        self.height)
+        </RDF>'''.format(Source=self.tmpCook,
+                        Format=r_rdfFormat(mode=self.PILLOW_MODE),
+                        Width=self.width,
+                        Height=self.height)
         
         self.tmpCook = r"C:\Temp\tmpCook.rdf"
         self.newTmpCook = r"C:\Temp\tmpCook.xpr"
@@ -146,53 +153,36 @@ class Texture:
 
         with open(self.tmpCook, "rb") as byteStream:
             byteStream.seek(0x2C)
-            self.headerXpr = byteStream.read(0x34)
+            self.d_xpr_header= byteStream.read(0x34)
             byteStream.seek(2060)
             self.rawdata = byteStream.read()
             self.rawDataSize = len(self.rawdata) + 0x23
             self.memorySize = len(self.rawdata) + 0x23
 
-    # Xbox 360
-    @staticmethod
-    def resolveRdfMode(mode):
-        return {
-            "1": "D3DFMT_DXT3",
-            "L": "D3DFMT_DXT3",
-            "P": "D3DFMT_DXT3",
-            "RGB": "D3DFMT_DXT1",
-            "RGBA": "D3DFMT_DXT3",
-            "CMYK": "D3DFMT_DXT1",
-            "YCbCr": "D3DFMT_DXT1",
-            "I": "D3DFMT_DXT5",
-            "F": "D3DFMT_DXT5",
-            "GRAYA": "D3DFMT_DXT3"
-        }[mode]
-
     def serializeHeader(self):
-        self.headerBytes = b''
-        self.headerBytes += uint32(self.version)
-        self.headerBytes += uint32(self.signature)
-        self.headerBytes += uint32(self.rawDataOffset)
-        self.headerBytes += uint32(self.rawDataSize)
-        self.headerBytes += ushort(self.width)
-        self.headerBytes += ushort(self.height)
-        self.headerBytes += ushort(self.depth)
-        self.headerBytes += ubyte(self.bpp)
-        self.headerBytes += ubyte(self.type)
-        self.headerBytes += uint32(self.memorySize)        
-        self.headerBytes += uint32(self.uncompressedSize)
-        self.headerBytes += uint32(self.nbOpaquePixels)
-        self.headerBytes += uint32(self.nbHolePixels)
-        self.headerBytes += ubyte(self.wrapModeX)
-        self.headerBytes += ubyte(self.wrapModeY)  
-        self.headerBytes += ubyte(self.dummybyte)
-        self.headerBytes += ubyte(self.dummybyte2)
+        self.bIO_header += uint32(self.version)
+        self.bIO_header += uint32(self.signature)
+        self.bIO_header += uint32(self.rawDataOffset)
+        self.bIO_header += uint32(self.rawDataSize)
+        self.bIO_header += ushort(self.width)
+        self.bIO_header += ushort(self.height)
+        self.bIO_header += ushort(self.depth)
+        self.bIO_header += ubyte(self.bpp)
+        self.bIO_header += ubyte(self.type)
+        self.bIO_header += uint32(self.memorySize)        
+        self.bIO_header += uint32(self.uncompressedSize)
+        self.bIO_header += uint32(self.nbOpaquePixels)
+        self.bIO_header += uint32(self.nbHolePixels)
+        self.bIO_header += ubyte(self.wrapModeX)
+        self.bIO_header += ubyte(self.wrapModeY)  
+        self.bIO_header += ubyte(self.dummybyte)
+        self.bIO_header += ubyte(self.dummybyte2)
 
         if self.platformType == "X360":
-            self.headerBytes += self.headerXpr
+            self.bIO_header += self.d_xpr_header
 
     def writeCookedTexture(self):
-        self.cookedTexture.write(self.headerBytes)
+        self.cookedTexture.write(self.bIO_header)
         self.cookedTexture.write(self.rawdata)
 
 
