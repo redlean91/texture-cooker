@@ -76,7 +76,7 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtx"
         os.system("{} -i {} -o {}".format(COOKER, self.ddsPath, self.tmpCook))
-        r_getRawTextureData(texturepath=self.tmpcook)
+        r_getTextureData(texturepath=self.tmpcook)
 
     def cookXtx(self):
         # Checking if theres, Executable version or Python version of XTX-Extract
@@ -88,7 +88,7 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.xtx"
         os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
-        r_getRawTextureData(texturepath=self.tmpcook)
+        r_getTextureData(texturepath=self.tmpcook)
 
     def cookGtf(self):
         print(self.binaryPath)
@@ -98,7 +98,7 @@ class Texture:
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtf"
         os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
-        r_getRawTextureData(texturepath=self.tmpcook)
+        r_getTextureData(texturepath=self.tmpcook)
 
     def cookXpr(self):
         @staticmethod
