@@ -21,7 +21,7 @@ In the **bin** folder you must have:
 | PS3 | ✅ |
 | Wii U | ✅ |
 | Wii | ❌ |
-| PS5 | ❌ |
+| PS5 | ❌ | Probably will never be added
 | Xbox 360 | ✅ |
 | Nintendo Switch | ✅ |
 
