@@ -26,7 +26,7 @@ class TextureCooker:
             "graya": "DXT3"
         }[ImageMagick_Compression]
 
-    def __cookDDS(image_path,
+    def cookDDS(image_path,
                   output_texture):
         
         channel = resolveChannel(image_path=image_path)
@@ -34,7 +34,7 @@ class TextureCooker:
         convert_to(image_path=image_path, output_texture=r"C:\Temp\temp.png")
         TextureCooker.cookDDS(input_texture=r"C:\Temp\temp.png", output_texture=output_texture, compression=compression)
 
-    def cookDDS(input_texture, output_texture, compression, mips=None, binaryPath="bin"):
+    def __cookDDS(input_texture, output_texture, compression, mips=None, binaryPath="bin"):
         COOKER = r"{}\nvcompress.exe".format(binaryPath)
         mipsArg = "" if mips else "-nomips"
 
