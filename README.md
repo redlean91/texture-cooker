@@ -9,8 +9,8 @@ In the **bin** folder you must have:
 
 ## Platform Requirements
     
-    - TexConv2 for Wii U
-    - XTX-Extract for NX, Python version and Executable versions are both fine.
+    - GTX-Extract for Wii U (Python Version)
+    - XTX-Extract for NX (Python Version)
     - Bundler for Xbox 360 from X360 SDK
     - DDS2Gtf for PS3 from PS3 SDK
 
