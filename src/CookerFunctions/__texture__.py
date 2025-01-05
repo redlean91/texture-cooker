@@ -3,6 +3,7 @@ from .__utils__ import *
 from .__types__ import *
 from PIL import Image
 import numpy, time
+import shutil
 
 # This is a revival of planedec50's code, kind of like my version
 
@@ -69,13 +70,20 @@ class Texture:
             self.rawDataSize = byteStream.tell()
             self.memorySize = byteStream.tell()
 
+    def cookDDS(self):
+        # Creating the temp folder
+        makeTemp()
+        self.tmpCook = r"C:\Temp\tmpCook.dds"
+        shutil.copy2(self.ddsPath, self.tmpCook)
+        self.r_getTextureData(texturepath=self.tmpCook)
+
     def cookGtx(self):
-        COOKER = r"{}\TexConv2.exe".format(self.binaryPath)
+        COOKER = r"python {}\gtx_extract.py".format(self.binaryPath)
         
         # Creating the temp folder
         makeTemp()
         self.tmpCook = r"C:\Temp\tmpCook.gtx"
-        os.system("{} -i {} -o {}".format(COOKER, self.ddsPath, self.tmpCook))
+        os.system("{} -o {} -swizzle 0 {}".format(COOKER, self.tmpCook, self.ddsPath))
         self.r_getTextureData(texturepath=self.tmpCook)
 
     def cookXtx(self):
