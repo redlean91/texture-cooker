@@ -1,10 +1,9 @@
 import os
-import platform
 from .__utils__ import *
 from .__texture__ import Texture
 
 class TextureCooker:
-    def resolveCompressionNvidia(ImageMagick_Compression):
+    def resolveCompressionNvidia(NVCompress_Compression):
         return {
             "rgb": "-bc1",
             "srgb": "-bc1",
@@ -13,7 +12,7 @@ class TextureCooker:
             "l": "-bc3",
             "1": "-bc1",
             "graya": "-bc2"
-        }[ImageMagick_Compression]
+        }[NVCompress_Compression]
     
     def resolveCompression(ImageMagick_Compression):
         return {
@@ -31,11 +30,13 @@ class TextureCooker:
         
         channel = resolveChannel(image_path=image_path)
         compression = TextureCooker.resolveCompressionNvidia(channel)
-        convert_to(image_path=image_path, output_texture=r"C:\Temp\temp.png")
-        TextureCooker.cookDDS(input_texture=r"C:\Temp\temp.png", output_texture=output_texture, compression=compression)
+        if ".webp" in image_path:
+            convert_to(image_path=image_path, output_texture=os.path.join("temp", "temp.png"))
+            TextureCooker.__cookDDS(input_texture=os.path.join("temp", "temp.png"), output_texture=output_texture, compression=compression)
+        else: TextureCooker.__cookDDS(input_texture=image_path, output_texture=output_texture, compression=compression)
 
     def __cookDDS(input_texture, output_texture, compression, mips=None, binaryPath="bin"):
-        COOKER = r"{}\nvcompress.exe".format(binaryPath)
+        COOKER = os.path.join(binaryPath, "nvcompress.exe")
         mipsArg = "" if mips else "-nomips"
 
         os.system("{} {} -nocuda {} {} {}".format(COOKER, compression, mipsArg, input_texture, output_texture))
@@ -80,13 +81,19 @@ class TextureCooker:
         _Texture.writeCookedTexture()
         del _Texture
 
-    # def cookWii(): "stil needs to do"
+    def cookWii(input_texture, output_texture):
+        _Texture = Texture(input_texture, output_texture, "WII")
+        _Texture.getTextureData()
+        _Texture.cookTex()
+        _Texture.serializeHeader()
+        _Texture.writeCookedTexture()
+        del _Texture
 
     def Cook(input_texture, output_texture, platformType, IMAGETODDS=False):
         makeTemp()        
         if IMAGETODDS:
-            TextureCooker.__cookDDS(image_path=input_texture, output_texture=r"C:\Temp\temp.dds")
-            input_texture = r"C:\Temp\temp.dds"
+            TextureCooker.cookDDS(image_path=input_texture, output_texture=os.path.join("temp", "temp.dds"))
+            input_texture = os.path.join("temp", "temp.dds")
 
         with open(input_texture, "rb") as ddsFile:
             if ddsFile.read(4) != b"DDS ":
@@ -116,6 +123,12 @@ class TextureCooker:
 
         if platformType == "X360":
             TextureCooker.cookX360(input_texture, output_texture)
+
+        if platformType == "WII":
+            TextureCooker.cookWii(input_texture, output_texture)
+
+
+# TextureCooker.cookWii(input_texture="asdasd.dds", output_texture="idk.png")
 
 
         

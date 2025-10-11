@@ -73,40 +73,98 @@ class Texture:
     def cookDDS(self):
         # Creating the temp folder
         makeTemp()
-        self.tmpCook = r"C:\Temp\tmpCook.dds"
+        self.tmpCook = os.path.join("temp", "tmpCook.dds")
         shutil.copy2(self.ddsPath, self.tmpCook)
         self.r_getTextureData(texturepath=self.tmpCook)
 
     def cookGtx(self):
-        COOKER = r"python {}\gtx_extract.py".format(self.binaryPath)
+        COOKER = r"python " + os.path.join(self.binaryPath, "gtx_extract.py")
         
         # Creating the temp folder
         makeTemp()
-        self.tmpCook = r"C:\Temp\tmpCook.gtx"
+        self.tmpCook = os.path.join("temp", "tmpCook.gtx")
         os.system("{} -o {} -swizzle 0 {}".format(COOKER, self.tmpCook, self.ddsPath))
         self.r_getTextureData(texturepath=self.tmpCook)
 
     def cookXtx(self):
         # Checking if theres, Executable version or Python version of XTX-Extract
-        xtxPyPresence = os.path.isfile(r"{}\xtx_extract.py".format(self.binaryPath))
-        if xtxPyPresence: COOKER = r"python {}\xtx_extract.py".format(self.binaryPath)
-        if not xtxPyPresence: COOKER = r"{}\xtx_extract.exe".format(self.binaryPath)
+        xtxPyPresence = os.path.isfile(os.path.join(self.binaryPath, "xtx_extract.py"))
+        if xtxPyPresence: COOKER = r"python " + os.path.join(self.binaryPath, "xtx_extract.py")
+        if not xtxPyPresence: COOKER = os.path.join(self.binaryPath, "xtx_extract.exe")
 
         # Creating the temp folder
         makeTemp()
-        self.tmpCook = r"C:\Temp\tmpCook.xtx"
+        self.tmpCook = os.path.join("temp", "tmpCook.xtx")
         os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
-        self.r_getTextureData(texturepath=self.tmpcook)
+        self.r_getTextureData(texturepath=self.tmpCook)
 
     def cookGtf(self):
-        print(self.binaryPath)
-        COOKER = r"{}\dds2gtf.exe".format(self.binaryPath)
+        COOKER = os.path.join(self.binaryPath, "dds2gtf.exe")
         
         # Creating the temp folder
         makeTemp()
-        self.tmpCook = r"C:\Temp\tmpCook.gtf"
+        self.tmpCook = os.path.join("temp", "tmpCook.gtf")
         os.system("{} -o {} {}".format(COOKER, self.tmpCook, self.ddsPath))
         self.r_getTextureData(texturepath=self.tmpCook)
+
+    def cookTex(self):
+        def make_wii_textures(img, outputImg, alpha=True):
+            # From https://github.com/lurkook/kuro
+
+            _img = Image.open(img)
+            # Creating the alpha & mask source textures
+            alpha_texture = _img.convert("RGB").convert("RGBA")
+
+            mask_texture = _img.tobytes("raw", "A")
+            mask_texture = Image.frombytes("L", _img.size, mask_texture)
+            mask_texture = mask_texture.convert("RGBA")
+
+            # Creating the empty white image
+            source_size = (_img.size[0], _img.size[1] * 2)
+            source_texture = Image.new("RGB", source_size, (255, 255, 255))
+
+            if alpha:
+                # Creating the mask for alpha texture in source texture
+                # This is needed because some textures can have problems with black background
+                mask_for_alpha_texture = mask_texture.convert("L")
+                mask_for_alpha_texture = mask_for_alpha_texture.point(
+                    lambda p: 255 if p > 1 else 0)
+                mask_for_alpha_texture = mask_for_alpha_texture.convert("1")
+
+                # Putting it together
+                source_texture.paste(alpha_texture, (0, 0), mask_for_alpha_texture)
+                source_texture.paste(mask_texture, (0, _img.size[1]))
+            else:
+                # Putting it together
+                source_texture.paste(alpha_texture, (0, 0))
+                source_texture.paste(mask_texture, (0, img.size[1]))
+
+            source_texture.save(outputImg)
+
+        COOKER = os.path.join(self.binaryPath, "wimgt.exe")
+
+        # Creating the temp folder
+        makeTemp()
+        self.tmpCook = os.path.join("temp", "tmpCook.png")
+        
+        if has_transparency(image_path=self.ddsPath): _alpha = True
+        else: _alpha = False
+
+        make_wii_textures(img=self.ddsPath, outputImg=self.tmpCook, alpha=_alpha)
+
+        self.newTmpCook = os.path.join("temp", "tmpCook.tpl")
+
+        os.system(f"{COOKER} COPY {self.tmpCook} --transform tpl.cmpr --overwrite --dest {self.newTmpCook}")
+        self.r_getTextureData(texturepath=self.newTmpCook)
+
+        with open(self.newTmpCook, "rb") as byteStream:
+            byteStream.seek(0x40)
+            self.rawdata = byteStream.read()
+            self.rawDataSize = len(self.rawdata) + 0x80 # SDD Header
+            self.memorySize = len(self.rawdata) + 0x80 # SDD Header
+
+        if _alpha: self.d_ssd_header = b" SSD\x00\x00\x00\x7C\x00\x00\x10\x0F" + uint32(self.height) + uint32(self.width) + b"\x00\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00TTVN\x00\x02\x00\x07\x00\x00\x00\x20\x00\x00\x00\x41APMC\x00\x00\x00\x20\x00\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        else: self.d_ssd_header = b" SSD\x00\x00\x00\x7C\x00\x00\x10\x0F" + uint32(self.height) + uint32(self.width) + b"\x00\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00TTVN\x00\x02\x00\x07\x00\x00\x00\x20\x00\x00\x00\x411TXD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
 
     def cookXpr(self):
         @staticmethod
@@ -124,11 +182,11 @@ class Texture:
                 "GRAYA": "D3DFMT_DXT3"
             }[mode]
         
-        COOKER = r"{}\Bundler.exe".format(self.binaryPath)
+        COOKER = os.path.join(self.binaryPath, "Bundler.exe")
 
         # Creating the temp folder
         makeTemp()
-        self.tmpCook = r"C:\Temp\tmpCook.png"
+        self.tmpCook = os.path.join("temp", "tmpCook.png")
 
         # Converting image to png cause dds is not supported
         convert_to(image_path=self.ddsPath, output_texture=self.tmpCook)
@@ -148,8 +206,8 @@ class Texture:
                         Width=self.width,
                         Height=self.height)
         
-        self.tmpCook = r"C:\Temp\tmpCook.rdf"
-        self.newTmpCook = r"C:\Temp\tmpCook.xpr"
+        self.tmpCook = os.path.join("temp", "tmpCook.rdf")
+        self.newTmpCook = os.path.join("temp", "tmpCook.xpr")
 
         with open(self.tmpCook, "w") as temprdf:
             temprdf.write(rdf)
@@ -188,6 +246,9 @@ class Texture:
 
         if self.platformType == "X360":
             self.bIO_header += self.d_xpr_header
+
+        if self.platformType == "WII":
+            self.bIO_header += self.d_ssd_header
 
     def writeCookedTexture(self):
         self.cookedTexture.write(self.bIO_header)
