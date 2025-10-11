@@ -12,16 +12,16 @@ def convert_to(image_path,
     else: compression = "DXT3" if alpha else "DXT1"
 
     if program=="magick": 
-        command = f'{binary_path}\\magick.exe convert "{image_path}" "{output_texture}"'
+        command = f'{path.join(binary_path, "magick.exe")} convert "{image_path}" "{output_texture}"'
     else: 
-        if silent: command = f"{binary_path}\\{program}.exe -silent {compression}"
-        else: command = f"{binary_path}\\{program}.exe {compression}"
+        if silent: command = f"{path.join(binary_path, f"{program}.exe")} -silent {compression}"
+        else: command = f"{path.join(binary_path, f"{program}.exe")} {compression}"
         command += f' "{image_path}" "{path.abspath(output_texture)}"'
     system(command)
 
 def resolveChannel(image_path, binary_path="bin"):
     completed_process = subprocess.Popen(
-        f'''{binary_path}\\magick.exe identify -format '%[channels]' "{image_path}"''',
+        f'''{path.join(binary_path, "magick.exe")} identify -format '%[channels]' "{image_path}"''',
         stdout=subprocess.PIPE, 
         stderr=subprocess.PIPE,
         shell=True,
@@ -74,7 +74,7 @@ def clear():
     elif os.name == "posix":
         os.system("clear")
 
-def makeTemp(folder=r"C:\Temp"):
+def makeTemp(folder=r"temp"):
     import os
     isPath = os.path.isdir(folder)
     if isPath:
