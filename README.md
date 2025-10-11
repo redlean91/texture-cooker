@@ -13,6 +13,7 @@ In the **bin** folder you must have:
     - XTX-Extract for NX (Python Version)
     - Bundler for Xbox 360 from X360 SDK
     - DDS2Gtf for PS3 from PS3 SDK
+    - Wimgt for Wii from the Wimms tools
 
 ## Implemented Platforms:
 | Platform | Implemented |
@@ -20,7 +21,7 @@ In the **bin** folder you must have:
 | PC | ✅ |
 | PS3 | ✅ |
 | Wii U | ✅ |
-| Wii | ❌ |
+| Wii |  ✅ |
 | PS5 | ❌ | Probably will never be added
 | Xbox 360 | ✅ |
 | Nintendo Switch | ✅ |
