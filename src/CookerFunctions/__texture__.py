@@ -64,11 +64,20 @@ class Texture:
                     self.nbOpaquePixels += 1
 
     # Platform Texture Cookers
-    def r_getTextureData(self, texturepath=None):
+    def r_getTextureData(self, texturepath=None, sizeModifier=0):
         with open(texturepath, "rb") as byteStream:
             self.rawdata = byteStream.read()
-            self.rawDataSize = byteStream.tell()
-            self.memorySize = byteStream.tell()
+            self.rawDataSize = byteStream.tell() + sizeModifier
+            self.memorySize = byteStream.tell() + sizeModifier
+
+    def r_xpr_getTextureData(self, texturepath=None):
+        with open(texturepath, "rb") as byteStream:
+            byteStream.seek(0x2C)
+            self.d_xpr_header= byteStream.read(0x34)
+            byteStream.seek(2060)
+            self.rawdata = byteStream.read()
+            self.rawDataSize = len(self.rawdata) + 0x23
+            self.memorySize = len(self.rawdata) + 0x23
 
     def cookDDS(self):
         # Creating the temp folder
@@ -155,13 +164,8 @@ class Texture:
         self.newTmpCook = os.path.join("temp", "tmpCook.tpl")
 
         os.system(f"{COOKER} COPY {self.tmpCook} --transform tpl.cmpr --overwrite --dest {self.newTmpCook}")
-        self.r_getTextureData(texturepath=self.newTmpCook)
 
-        with open(self.newTmpCook, "rb") as byteStream:
-            byteStream.seek(0x40)
-            self.rawdata = byteStream.read()
-            self.rawDataSize = len(self.rawdata) + 0x80 # SDD Header
-            self.memorySize = len(self.rawdata) + 0x80 # SDD Header
+        self.r_getTextureData(texturepath=self.newTmpCook, sizeModifier=+0x80)
 
         if _alpha: self.d_ssd_header = b" SSD\x00\x00\x00\x7C\x00\x00\x10\x0F" + uint32(self.height) + uint32(self.width) + b"\x00\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00TTVN\x00\x02\x00\x07\x00\x00\x00\x20\x00\x00\x00\x41APMC\x00\x00\x00\x20\x00\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         else: self.d_ssd_header = b" SSD\x00\x00\x00\x7C\x00\x00\x10\x0F" + uint32(self.height) + uint32(self.width) + b"\x00\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00TTVN\x00\x02\x00\x07\x00\x00\x00\x20\x00\x00\x00\x411TXD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
@@ -217,13 +221,7 @@ class Texture:
         self.tmpCook = self.newTmpCook
         del self.newTmpCook
 
-        with open(self.tmpCook, "rb") as byteStream:
-            byteStream.seek(0x2C)
-            self.d_xpr_header= byteStream.read(0x34)
-            byteStream.seek(2060)
-            self.rawdata = byteStream.read()
-            self.rawDataSize = len(self.rawdata) + 0x23
-            self.memorySize = len(self.rawdata) + 0x23
+        self.r_xpr_getTextureData(texturepath=self.tmpCook)
 
     def serializeHeader(self):
         self.bIO_header += uint32(self.version)
