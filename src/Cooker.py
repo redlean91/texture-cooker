@@ -24,6 +24,7 @@ for texture in listdir("toCook"):
             print("Magick.exe is missing! Can't convert Image to DDS not supported!\nClosing in 5 seconds.")
             time.sleep(5)
             exit()
+    else: IMAGETODDS = False
     if has_transparency(input_texture): output_texture = os.path.join("cooked", PLATFORM.lower(), texture.split(".")[0]+".png.ckd")
     else: output_texture = os.path.join("cooked", PLATFORM.lower(), texture.split(".")[0]+".tga.ckd")
     TextureCooker.Cook(input_texture=input_texture, output_texture=output_texture, platformType=PLATFORM, IMAGETODDS=IMAGETODDS)
