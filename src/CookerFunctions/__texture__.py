@@ -117,58 +117,68 @@ class Texture:
         self.r_getTextureData(texturepath=self.tmpCook)
 
     def cookTex(self):
-        def make_wii_textures(img, outputImg, alpha=True):
-            # From https://github.com/lurkook/kuro
-
+        def make_wii_textures(img, outputImg, outputImgMask=None, alpha=True):
             _img = Image.open(img)
             # Creating the alpha & mask source textures
             alpha_texture = _img.convert("RGB").convert("RGBA")
 
-            mask_texture = _img.tobytes("raw", "A")
-            mask_texture = Image.frombytes("L", _img.size, mask_texture)
-            mask_texture = mask_texture.convert("RGBA")
+            if alpha: 
+                mask_texture = _img.tobytes("raw", "A")
+                mask_texture = Image.frombytes("L", _img.size, mask_texture)
+                mask_texture = mask_texture.convert("RGBA")
 
-            # Creating the empty white image
-            source_size = (_img.size[0], _img.size[1] * 2)
-            source_texture = Image.new("RGB", source_size, (255, 255, 255))
-
+            alpha_texture.save(outputImg)
             if alpha:
-                # Creating the mask for alpha texture in source texture
-                # This is needed because some textures can have problems with black background
-                mask_for_alpha_texture = mask_texture.convert("L")
-                mask_for_alpha_texture = mask_for_alpha_texture.point(
-                    lambda p: 255 if p > 1 else 0)
-                mask_for_alpha_texture = mask_for_alpha_texture.convert("1")
-
-                # Putting it together
-                source_texture.paste(alpha_texture, (0, 0), mask_for_alpha_texture)
-                source_texture.paste(mask_texture, (0, _img.size[1]))
-            else:
-                # Putting it together
-                source_texture.paste(alpha_texture, (0, 0))
-                source_texture.paste(mask_texture, (0, img.size[1]))
-
-            source_texture.save(outputImg)
+                mask_texture.save(outputImgMask)
 
         COOKER = os.path.join(self.binaryPath, "wimgt.exe")
 
         # Creating the temp folder
         makeTemp()
-        self.tmpCook = os.path.join("temp", "tmpCook.png")
-        
+
         if has_transparency(image_path=self.ddsPath): _alpha = True
         else: _alpha = False
 
-        make_wii_textures(img=self.ddsPath, outputImg=self.tmpCook, alpha=_alpha)
+        self.tmpCook = os.path.join("temp", "tmpCook.png")
+        if _alpha: self.tmpCookMask = os.path.join("temp", "tmpCookMask.png")
+        
+        if _alpha: make_wii_textures(img=self.ddsPath, outputImg=self.tmpCook, outputImgMask=self.tmpCookMask, alpha=_alpha)
 
         self.newTmpCook = os.path.join("temp", "tmpCook.tpl")
+        if _alpha: self.newTmpCookMask = os.path.join("temp", "tmpCookMask.tpl")
 
         os.system(f"{COOKER} COPY {self.tmpCook} --transform tpl.cmpr --overwrite --dest {self.newTmpCook}")
+        if _alpha: os.system(f"{COOKER} COPY {self.tmpCookMask} --transform tpl.cmpr --overwrite --dest {self.newTmpCookMask}")
 
-        self.r_getTextureData(texturepath=self.newTmpCook, sizeModifier=+0x80)
+        if _alpha:
+            with open(os.path.join("temp", "tmpCook_new.tex"), "wb") as combined:
+                img_a = open(os.path.join("temp", "tmpCook.tpl"), "rb")
+                img_m = open(os.path.join("temp", "tmpCookMask.tpl"), "rb")
+                img_a.seek(0x40)
+                img_m.seek(0x40)
+                combined.write(img_a.read() + img_m.read())
+                img_a.close()
+                img_m.close()
+
+        else:
+            with open(os.path.join("temp", "tmpCook_new.tex"), "wb") as newTex:
+                img_a = open(os.path.join("temp", "tmpCook.tpl"), "rb")
+                img_a.seek(0x40)
+                newTex.write(img_a.read)
+                img_a.close()
+
+        self.tmpCook = os.path.join("temp", "tmpCook_new.tex")
+
+        self.r_getTextureData(texturepath=self.tmpCook, sizeModifier=+0x80)
 
         if _alpha: self.d_ssd_header = b" SSD\x00\x00\x00\x7C\x00\x00\x10\x0F" + uint32(self.height) + uint32(self.width) + b"\x00\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00TTVN\x00\x02\x00\x07\x00\x00\x00\x20\x00\x00\x00\x41APMC\x00\x00\x00\x20\x00\xFF\x00\x00\x00\x00\xFF\x00\x00\x00\x00\xFF\xFF\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
         else: self.d_ssd_header = b" SSD\x00\x00\x00\x7C\x00\x00\x10\x0F" + uint32(self.height) + uint32(self.width) + b"\x00\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00TTVN\x00\x02\x00\x07\x00\x00\x00\x20\x00\x00\x00\x411TXD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+
+        if _alpha: 
+            del self.tmpCookMask
+            del self.newTmpCookMask
+
+        del self.newTmpCook
 
     def cookXpr(self):
         @staticmethod
