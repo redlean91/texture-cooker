@@ -143,6 +143,7 @@ class Texture:
         if _alpha: self.tmpCookMask = os.path.join("temp", "tmpCookMask.png")
         
         if _alpha: make_wii_textures(img=self.ddsPath, outputImg=self.tmpCook, outputImgMask=self.tmpCookMask, alpha=_alpha)
+        else: make_wii_textures(img=self.ddsPath, outputImg=self.tmpCook, alpha=_alpha)
 
         self.newTmpCook = os.path.join("temp", "tmpCook.tpl")
         if _alpha: self.newTmpCookMask = os.path.join("temp", "tmpCookMask.tpl")
