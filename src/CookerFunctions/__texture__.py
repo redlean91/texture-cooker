@@ -164,7 +164,7 @@ class Texture:
             with open(os.path.join("temp", "tmpCook_new.tex"), "wb") as newTex:
                 img_a = open(os.path.join("temp", "tmpCook.tpl"), "rb")
                 img_a.seek(0x40)
-                newTex.write(img_a.read)
+                newTex.write(img_a.read())
                 img_a.close()
 
         self.tmpCook = os.path.join("temp", "tmpCook_new.tex")
