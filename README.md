@@ -19,6 +19,8 @@ In the **bin** folder you must have:
 | Platform | Implemented |
 | -------- | ----------- |
 | PC | ✅ |
+| PS4/ORBIS | ✅ |
+| XONE/DURANGO | ✅ |
 | PS3 | ✅ |
 | Wii U | ✅ |
 | Wii |  ✅ |
